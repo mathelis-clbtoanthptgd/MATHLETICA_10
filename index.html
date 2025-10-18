@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Gardener - Mathletica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap');
+        
+        .title-font {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+        }
+        
+        .content-font {
+            font-family: 'Nunito', sans-serif;
+        }
+        
+        /* Background textures */
+        .watercolor-bg {
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 25%, #f0f9ff 50%, #fefce8 75%, #f0fdf4 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .grass-texture {
+            background: linear-gradient(45deg, #22c55e 0%, #16a34a 50%, #15803d 100%);
+            background-size: 20px 20px;
+            position: relative;
+        }
+        
+        .grass-texture::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 1px, transparent 1px);
+            background-size: 15px 15px, 10px 10px;
+        }
+        
+        /* Grid cells with wooden fence style */
+        .grid-cell {
+            width: 45px;
+            height: 45px;
+            border: 3px solid #8b5a2b;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #fefce8;
+            box-shadow: inset 0 1px 3px rgba(139, 90, 43, 0.2);
+        }
+        
+        .grid-cell:hover {
+            border-color: #22c55e;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+        }
+        
+        .grid-cell.start-cell {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-color: #d97706;
+            box-shadow: 0 0 20px rgba(217, 119, 6, 0.4);
+        }
+        
+        .grid-cell.apple-cell {
+            background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            border-color: #16a34a;
+        }
+        
+        .grid-cell.obstacle-cell {
+            background: linear-gradient(135deg, #78716c 0%, #57534e 100%);
+            border-color: #44403c;
+        }
+        
+        .path-drawn {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+            border-color: #15803d !important;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .path-drawn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Vine Growing Effect */
+        .vine-growing {
+            position: relative;
+            overflow: visible !important;
+        }
+        
+        .vine-growing::before {
+            content: '🌿';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            font-size: 16px;
+            z-index: 10;
+            animation: vineGrow 0.8s ease-out forwards;
+        }
+        
+        @keyframes vineGrow {
+            0% {
+                transform: translateX(-50%) scale(0) rotate(-90deg);
+                opacity: 0;
+            }
+            50% {
+                transform: translateX(-50%) scale(0.8) rotate(-45deg);
+                opacity: 0.7;
+            }
+            100% {
+                transform: translateX(-50%) scale(1) rotate(0deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Blooming Flowers Effect */
+        .blooming {
+            animation: bloomFlowers 1.5s ease-out forwards;
+        }
+        
+        @keyframes bloomFlowers {
+            0% {
+                background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            }
+            50% {
+                background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+                transform: scale(1.1);
+            }
+            100% {
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                transform: scale(1);
+            }
+        }
+        
+        .flower-burst {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            z-index: 15;
+            animation: flowerBurstAnim 2s ease-out forwards;
+        }
+        
+        @keyframes flowerBurstAnim {
+            0% {
+                transform: translate(-50%, -50%) scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            30% {
+                transform: translate(-50%, -50%) scale(1.5) rotate(180deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+        
+        .footprint {
+            position: absolute;
+            font-size: 14px;
+            color: #ffffff;
+            z-index: 10;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            animation: footprintAppear 0.5s ease-out;
+        }
+        
+        @keyframes footprintAppear {
+            0% { transform: scale(0) rotate(180deg); opacity: 0; }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        
+        /* Enhanced Wooden button style */
+        .wooden-btn {
+            background: linear-gradient(135deg, #d2691e 0%, #8b4513 100%);
+            border: 3px solid #654321;
+            border-radius: 12px;
+            color: #fef7ed;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 
+                0 4px 8px rgba(139, 69, 19, 0.3),
+                inset 0 1px 0 rgba(255,255,255,0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .wooden-btn:hover {
+            transform: translateY(-4px) scale(1.05);
+            box-shadow: 
+                0 8px 20px rgba(139, 69, 19, 0.5),
+                inset 0 2px 0 rgba(255,255,255,0.4);
+            animation: woodenBounce 0.6s ease-in-out;
+        }
+        
+        @keyframes woodenBounce {
+            0% { transform: translateY(-2px) scale(1.02); }
+            30% { transform: translateY(-6px) scale(1.08) rotate(1deg); }
+            60% { transform: translateY(-3px) scale(1.06) rotate(-0.5deg); }
+            100% { transform: translateY(-4px) scale(1.05) rotate(0deg); }
+        }
+        
+        .wooden-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(34, 197, 94, 0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .wooden-btn:hover::before {
+            transform: translateX(100%);
+        }
+        
+        /* Vine Growing Effect for Buttons */
+        .wooden-btn::after {
+            content: '🌿';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 12px;
+            opacity: 0;
+            transform: scale(0) rotate(-45deg);
+            transition: all 0.4s ease;
+        }
+        
+        .wooden-btn:hover::after {
+            opacity: 1;
+            transform: scale(1) rotate(0deg);
+        }
+        
+        /* Apple red button for submit */
+        .apple-btn {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            border: 3px solid #7f1d1d;
+        }
+        
+        .apple-btn:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        /* Card styling with nature theme */
+        .nature-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(139, 90, 43, 0.2);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .nature-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #22c55e, #16a34a, #15803d, #22c55e);
+            background-size: 400% 400%;
+            border-radius: 22px;
+            z-index: -1;
+            animation: borderGlow 6s ease infinite;
+            opacity: 0.3;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        /* Enhanced Background Effects */
+        
+        /* Sun Rays Effect */
+        .sun-rays {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.03) 20%,
+                transparent 21%,
+                transparent 40%,
+                rgba(255, 255, 255, 0.02) 60%,
+                transparent 61%,
+                transparent 80%,
+                rgba(255, 255, 255, 0.04) 100%
+            );
+            animation: sunRaysMove 20s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes sunRaysMove {
+            0% { transform: rotate(0deg) translateX(-10px); }
+            100% { transform: rotate(360deg) translateX(-10px); }
+        }
+        
+        /* Floating Particles */
+        .floating-particle {
+            position: fixed;
+            width: 3px;
+            height: 3px;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 2;
+        }
+        
+        .pollen-particle {
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.6) 0%, transparent 70%);
+            animation: pollenFloat 15s linear infinite;
+        }
+        
+        @keyframes pollenFloat {
+            0% {
+                transform: translateY(100vh) translateX(0px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) translateX(50px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Butterflies */
+        .butterfly {
+            position: fixed;
+            font-size: 20px;
+            z-index: 3;
+            pointer-events: none;
+            animation: butterflyFly 25s linear infinite;
+        }
+        
+        @keyframes butterflyFly {
+            0% {
+                transform: translateX(-100px) translateY(50vh) rotate(0deg);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            25% {
+                transform: translateX(25vw) translateY(30vh) rotate(10deg);
+            }
+            50% {
+                transform: translateX(50vw) translateY(60vh) rotate(-5deg);
+            }
+            75% {
+                transform: translateX(75vw) translateY(40vh) rotate(15deg);
+            }
+            95% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 100px)) translateY(45vh) rotate(0deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Enhanced Decorative Leaves */
+        .leaf-decoration {
+            position: absolute;
+            font-size: 24px;
+            opacity: 0.6;
+            animation: leafFloat 4s ease-in-out infinite;
+        }
+        
+        @keyframes leafFloat {
+            0%, 100% { 
+                transform: translateY(0px) rotate(0deg) scale(1); 
+            }
+            25% { 
+                transform: translateY(-8px) rotate(2deg) scale(1.05); 
+            }
+            50% { 
+                transform: translateY(-15px) rotate(5deg) scale(1.1); 
+            }
+            75% { 
+                transform: translateY(-8px) rotate(3deg) scale(1.05); 
+            }
+        }
+        
+        /* Corner Vine Decorations */
+        .corner-vine {
+            position: fixed;
+            font-size: 30px;
+            z-index: 2;
+            pointer-events: none;
+            animation: vineGentleSway 6s ease-in-out infinite;
+        }
+        
+        @keyframes vineGentleSway {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            33% { transform: rotate(2deg) scale(1.02); }
+            66% { transform: rotate(-1deg) scale(0.98); }
+        }
+        
+        /* Grass Wave Background */
+        .grass-wave-bg {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .grass-wave-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+                90deg,
+                rgba(34, 197, 94, 0.1) 0%,
+                rgba(22, 163, 74, 0.15) 25%,
+                rgba(34, 197, 94, 0.1) 50%,
+                rgba(22, 163, 74, 0.15) 75%,
+                rgba(34, 197, 94, 0.1) 100%
+            );
+            background-size: 200px 100%;
+            animation: grassWaveMove 8s ease-in-out infinite;
+        }
+        
+        @keyframes grassWaveMove {
+            0%, 100% { transform: translateX(0px); }
+            50% { transform: translateX(-50px); }
+        }
+        
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+        
+        .pulse-red {
+            animation: pulseRed 0.6s ease-in-out;
+        }
+        
+        @keyframes pulseRed {
+            0%, 100% { 
+                background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+                transform: scale(1);
+            }
+            50% { 
+                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+                transform: scale(1.05);
+            }
+        }
+        
+        /* Victory modal with growing plant effect */
+        .victory-modal {
+            animation: plantGrow 1s ease-out;
+        }
+        
+        @keyframes plantGrow {
+            0% {
+                transform: scale(0.1) translateY(50px);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(0.8) translateY(-10px);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Falling petals animation */
+        .petal {
+            position: absolute;
+            font-size: 20px;
+            animation: petalFall 3s linear infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes petalFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Enhanced Screen transition effects */
+        .screen-transition {
+            animation: slideUp 0.8s ease-out;
+        }
+        
+        @keyframes slideUp {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Vine Transition Effect */
+        .vine-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+        
+        .vine-curtain {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(34, 197, 94, 0.9) 0%,
+                rgba(22, 163, 74, 0.8) 50%,
+                rgba(21, 128, 61, 0.9) 100%
+            );
+            transform: translateY(-100%);
+            animation: vineCurtainDrop 1.2s ease-out forwards;
+        }
+        
+        @keyframes vineCurtainDrop {
+            0% {
+                transform: translateY(-100%);
+            }
+            60% {
+                transform: translateY(0%);
+            }
+            100% {
+                transform: translateY(100%);
+            }
+        }
+        
+        .vine-curtain::before {
+            content: '🌿🌱🍃🌿🌱🍃🌿🌱🍃🌿🌱🍃🌿🌱🍃';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 24px;
+            animation: vineLeavesSway 0.8s ease-in-out infinite;
+        }
+        
+        @keyframes vineLeavesSway {
+            0%, 100% { transform: translateX(0px) rotate(0deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+        }
+        
+        /* Grass wave effect */
+        .grass-wave {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .grass-wave::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(34, 197, 94, 0.3) 0%, transparent 70%);
+            animation: grassRipple 1s ease-out;
+        }
+        
+        @keyframes grassRipple {
+            0% {
+                left: -100%;
+                transform: scale(0);
+            }
+            100% {
+                left: 100%;
+                transform: scale(2);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .grid-cell {
+                width: 40px;
+                height: 40px;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .grid-cell {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body class="watercolor-bg min-h-full content-font">
+    <!-- Enhanced Background Effects -->
+    
+    <!-- Sun Rays -->
+    <div class="sun-rays"></div>
+    
+    <!-- Floating Particles Container -->
+    <div id="particlesContainer"></div>
+    
+    <!-- Butterflies Container -->
+    <div id="butterfliesContainer"></div>
+    
+    <!-- Corner Vines -->
+    <div class="corner-vine" style="top: 0; left: 0; animation-delay: 0s;">🌿</div>
+    <div class="corner-vine" style="top: 0; right: 0; animation-delay: -2s;">🍃</div>
+    <div class="corner-vine" style="bottom: 0; left: 0; animation-delay: -4s;">🌱</div>
+    <div class="corner-vine" style="bottom: 0; right: 0; animation-delay: -1s;">🍀</div>
+    
+    <!-- Enhanced Decorative leaves -->
+    <div class="leaf-decoration" style="top: 10%; left: 5%;">🍃</div>
+    <div class="leaf-decoration" style="top: 20%; right: 8%; animation-delay: -1s;">🌿</div>
+    <div class="leaf-decoration" style="bottom: 15%; left: 10%; animation-delay: -2s;">🍀</div>
+    <div class="leaf-decoration" style="bottom: 25%; right: 5%; animation-delay: -3s;">🌱</div>
+    <div class="leaf-decoration" style="top: 35%; left: 15%; animation-delay: -0.5s;">🌾</div>
+    <div class="leaf-decoration" style="top: 60%; right: 15%; animation-delay: -2.5s;">🍂</div>
+    <div class="leaf-decoration" style="top: 45%; left: 3%; animation-delay: -1.8s;">🌿</div>
+    <div class="leaf-decoration" style="bottom: 40%; right: 12%; animation-delay: -3.2s;">🍃</div>
+    <div class="leaf-decoration" style="top: 75%; left: 8%; animation-delay: -0.8s;">🌱</div>
+    <div class="leaf-decoration" style="bottom: 60%; left: 20%; animation-delay: -2.8s;">🌾</div>
+    <div class="leaf-decoration" style="top: 25%; left: 25%; animation-delay: -1.2s;">🍀</div>
+    <div class="leaf-decoration" style="bottom: 35%; right: 25%; animation-delay: -3.5s;">🍂</div>
+    
+    <main class="min-h-full">
+        <!-- Start Screen -->
+        <div id="startScreen" class="flex items-center justify-center min-h-full p-4">
+            <div class="nature-card p-8 max-w-md w-full text-center">
+                <div class="mb-6 relative">
+                    <h1 class="title-font text-3xl text-green-700 mb-2 flex items-center justify-center gap-2">
+                        🏡 The Gardener 🌳
+                    </h1>
+                    <p class="text-amber-700 text-sm font-medium">Mathletica: Đố vui không thưởng #10</p>
+                    <div class="absolute -top-2 -right-2 text-2xl animate-bounce">🦋</div>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="playerName" class="block text-left text-amber-800 font-semibold mb-3">
+                        🌱 Nhập tên người làm vườn:
+                    </label>
+                    <input 
+                        type="text" 
+                        id="playerName" 
+                        class="w-full px-4 py-3 border-3 border-amber-300 rounded-xl focus:border-green-500 focus:outline-none transition-all duration-300 bg-yellow-50 text-amber-900 placeholder-amber-500"
+                        placeholder="Tên của bạn..."
+                    >
+                </div>
+                
+                <button 
+                    id="startButton"
+                    class="w-full wooden-btn py-4 px-6 text-lg font-bold transform hover:scale-105 transition-all duration-300"
+                >
+                    🚪 BẮT ĐẦU HÀNH TRÌNH
+                </button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="hidden min-h-full p-4 screen-transition">
+            <div class="max-w-7xl mx-auto">
+                <!-- Mobile Timer (shown on top for mobile) -->
+                <div class="md:hidden nature-card p-4 mb-4">
+                    <div class="text-center">
+                        <span class="text-lg font-semibold text-amber-800">⏰ Thời gian: </span>
+                        <span id="timerMobile" class="text-xl font-bold text-green-600">00:00</span>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Game Grid -->
+                    <div class="order-2 md:order-1">
+                        <div class="nature-card p-6 grass-texture grass-wave-bg">
+                            <div class="bg-amber-50 rounded-xl p-4 mb-4">
+                                <h3 class="text-center text-amber-800 font-bold mb-2">🌻 Vườn Táo Của Bạn 🌻</h3>
+                            </div>
+                            <div id="gameGrid" class="grid grid-cols-8 gap-3 justify-center mx-auto w-fit bg-green-100 p-6 rounded-xl border-4 border-amber-600">
+                                <!-- Grid cells will be generated by JavaScript -->
+                            </div>
+                            
+                            <div class="mt-6 text-center space-y-3">
+                                <button 
+                                    id="resetPathButton"
+                                    class="wooden-btn py-2 px-6 text-base font-bold transform hover:scale-105 transition-all duration-300 mr-4"
+                                >
+                                    🔄 RESET ĐƯỜNG ĐI
+                                </button>
+                                <button 
+                                    id="submitButton"
+                                    class="wooden-btn apple-btn py-3 px-8 text-lg font-bold transform hover:scale-105 transition-all duration-300"
+                                >
+                                    🍎 HOÀN THÀNH HÀNH TRÌNH
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Game Info -->
+                    <div class="order-1 md:order-2 space-y-6">
+                        <!-- Desktop Timer -->
+                        <div class="hidden md:block nature-card p-4">
+                            <div class="text-center">
+                                <span class="text-lg font-semibold text-amber-800">⏰ Thời gian: </span>
+                                <span id="timerDesktop" class="text-xl font-bold text-green-600">00:00</span>
+                            </div>
+                        </div>
+
+                        <!-- Problem Description -->
+                        <div class="nature-card p-6">
+                            <h2 class="text-xl font-bold text-amber-800 mb-4 flex items-center gap-2">
+                                🌿 HÀNH TRÌNH CỦA NGƯỜI LÀM VƯỜN 🌿
+                            </h2>
+                            <p class="text-amber-900 leading-relaxed">
+                                Sơ đồ bên dưới là bản thiết kế của một vườn táo. Bạn là người làm vườn sẽ bắt đầu từ ô vuông có chứa ngôi nhà (🏡), và bạn phải đi qua tất cả các ô vuông khác, lần lượt từng ô một. Vào cuối hành trình của mình, bạn lại quay về đúng ô vuông có ngôi nhà.
+                            </p>
+                        </div>
+
+                        <!-- Game Rules -->
+                        <div class="nature-card p-6">
+                            <h3 class="text-lg font-bold text-amber-800 mb-4 flex items-center gap-2">
+                                📋 Cách chơi:
+                            </h3>
+                            <ul class="text-amber-900 space-y-3">
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-600 font-bold text-lg">👆</span>
+                                    <span><strong>Nhấp chuột:</strong> Nhấp vào các ô để di chuyển từng bước một.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-600 font-bold text-lg">🏡</span>
+                                    <span><strong>Bắt đầu & Kết thúc:</strong> Bắt đầu tại ngôi nhà và kết thúc tại chính nơi đó.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-600 font-bold text-lg">➡️</span>
+                                    <span><strong>Di chuyển:</strong> Chỉ đi theo chiều ngang hoặc dọc. KHÔNG đi chéo.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-green-600 font-bold text-lg">🌱</span>
+                                    <span><strong>Quy tắc:</strong> PHẢI đi qua tất cả các ô trắng, mỗi ô ĐÚNG MỘT LẦN.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="text-red-600 font-bold text-lg">🏢</span>
+                                    <span><strong>Chướng ngại vật:</strong> KHÔNG được đi vào nhà kho dụng cụ.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Victory Modal -->
+        <div id="victoryModal" class="hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+            <!-- Falling petals -->
+            <div id="petalsContainer" class="absolute inset-0 pointer-events-none"></div>
+            
+            <div class="nature-card p-8 max-w-md w-full text-center victory-modal relative overflow-hidden">
+                <!-- Decorative border with apples and leaves -->
+                <div class="absolute top-2 left-2 text-2xl">🍎</div>
+                <div class="absolute top-2 right-2 text-2xl">🍃</div>
+                <div class="absolute bottom-2 left-2 text-2xl">🌿</div>
+                <div class="absolute bottom-2 right-2 text-2xl">🍎</div>
+                
+                <div class="text-6xl mb-4 animate-bounce">🎉</div>
+                <h2 class="title-font text-4xl text-green-700 mb-4">CHÚC MỪNG!</h2>
+                <p class="text-2xl font-bold text-amber-800 mb-2">
+                    🌟 <span id="winnerName"></span> 🌟
+                </p>
+                <p class="text-amber-900 mb-4 text-lg">
+                    Bạn đã hoàn thành xuất sắc thử thách!
+                </p>
+                <p class="text-amber-700 mb-6 text-lg">
+                    ⏰ Thời gian của bạn: <span id="finalTime" class="font-bold text-green-600"></span>
+                </p>
+                <button 
+                    id="playAgainButton"
+                    class="wooden-btn py-4 px-8 text-lg font-bold transform hover:scale-105 transition-all duration-300"
+                >
+                    🔄 CHƠI LẠI
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        class GardenerGame {
+            constructor() {
+                this.playerName = '';
+                this.startTime = null;
+                this.timerInterval = null;
+                this.grid = [];
+                this.path = [];
+                this.isDrawing = false;
+                this.currentCell = null;
+                
+                // Grid setup - 8x8 grid
+                this.gridSize = 8;
+                this.startPos = {row: 0, col: 7}; // (8,0) in 1-based indexing
+                this.obstacles = [{row: 0, col: 2},{row: 1, col: 2},{row: 3, col: 3},{row: 4, col: 3},{row: 6, col: 4},{row: 7, col: 4}]; // (3,0) in 1-based indexing
+                this.apples = [{row: 0, col: 0}, {row: 0, col: 4}, {row: 0, col: 6}, {row: 1, col: 1},
+                {row: 1, col: 3}, {row: 1, col: 5}, {row: 1, col: 7}, {row: 2, col: 0},
+                {row: 2, col: 2}, {row: 2, col: 4}, {row: 2, col: 6}, {row: 3, col: 1},
+                {row: 3, col: 5}, {row: 3, col: 7}, {row: 4, col: 0}, {row: 4, col: 2},
+                {row: 4, col: 4}, {row: 4, col: 6}, {row: 5, col: 1}, {row: 5, col: 3},
+                {row: 5, col: 5}, {row: 5, col: 7},
+{row: 6, col: 0}, {row: 6, col: 2}, {row: 6, col: 6}, {row: 6, col: 3},
+{row: 7, col: 1}, {row: 7, col: 3}, {row: 7, col: 5}, {row: 7, col: 7}]; // (1,1) in 1-based indexing
+                
+                this.initializeGrid();
+                this.bindEvents();
+                this.initializeBackgroundEffects();
+            }
+            
+            initializeBackgroundEffects() {
+                this.createFloatingParticles();
+                this.createButterflies();
+            }
+            
+            createFloatingParticles() {
+                const container = document.getElementById('particlesContainer');
+                
+                // Create pollen particles
+                for (let i = 0; i < 8; i++) {
+                    setTimeout(() => {
+                        const particle = document.createElement('div');
+                        particle.className = 'floating-particle pollen-particle';
+                        particle.style.left = Math.random() * 100 + '%';
+                        particle.style.animationDelay = Math.random() * 15 + 's';
+                        particle.style.animationDuration = (Math.random() * 5 + 15) + 's';
+                        
+                        container.appendChild(particle);
+                        
+                        // Remove and recreate particle after animation
+                        setTimeout(() => {
+                            if (particle.parentNode) {
+                                particle.parentNode.removeChild(particle);
+                                this.createSingleParticle();
+                            }
+                        }, 20000);
+                    }, i * 2000);
+                }
+            }
+            
+            createSingleParticle() {
+                const container = document.getElementById('particlesContainer');
+                const particle = document.createElement('div');
+                particle.className = 'floating-particle pollen-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = '0s';
+                particle.style.animationDuration = (Math.random() * 5 + 15) + 's';
+                
+                container.appendChild(particle);
+                
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                        this.createSingleParticle();
+                    }
+                }, 20000);
+            }
+            
+            createButterflies() {
+                const container = document.getElementById('butterfliesContainer');
+                const butterflyEmojis = ['🦋', '🦋', '🦋'];
+                
+                const createButterfly = () => {
+                    const butterfly = document.createElement('div');
+                    butterfly.className = 'butterfly';
+                    butterfly.innerHTML = butterflyEmojis[Math.floor(Math.random() * butterflyEmojis.length)];
+                    butterfly.style.animationDelay = '0s';
+                    butterfly.style.animationDuration = (Math.random() * 10 + 20) + 's';
+                    
+                    container.appendChild(butterfly);
+                    
+                    setTimeout(() => {
+                        if (butterfly.parentNode) {
+                            butterfly.parentNode.removeChild(butterfly);
+                        }
+                    }, 30000);
+                };
+                
+                // Create initial butterflies
+                createButterfly();
+                
+                // Create new butterflies periodically
+                setInterval(() => {
+                    if (Math.random() < 0.3) { // 30% chance every interval
+                        createButterfly();
+                    }
+                }, 8000);
+            }
+            
+            initializeGrid() {
+                const gameGrid = document.getElementById('gameGrid');
+                gameGrid.innerHTML = '';
+                this.grid = [];
+                
+                for (let row = 0; row < this.gridSize; row++) {
+                    this.grid[row] = [];
+                    for (let col = 0; col < this.gridSize; col++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'grid-cell bg-white';
+                        cell.dataset.row = row;
+                        cell.dataset.col = col;
+                        
+                        // Set cell type
+                        if (row === this.startPos.row && col === this.startPos.col) {
+                            cell.innerHTML = '🏡';
+                            cell.classList.add('start-cell');
+                            this.grid[row][col] = 'start';
+                        } else if (this.obstacles.some(obs => obs.row === row && obs.col === col)) {
+                            cell.innerHTML = '🏚️';
+                            cell.classList.add('obstacle-cell');
+                            this.grid[row][col] = 'obstacle';
+                        } else if (this.apples.some(apple => apple.row === row && apple.col === col)) {
+                            cell.innerHTML = '🍎';
+                            cell.classList.add('apple-cell');
+                            this.grid[row][col] = 'apple';
+                        } else {
+                            this.grid[row][col] = 'path';
+                        }
+                        
+                        gameGrid.appendChild(cell);
+                    }
+                }
+            }
+            
+            bindEvents() {
+                // Start button
+                document.getElementById('startButton').addEventListener('click', () => {
+                    const nameInput = document.getElementById('playerName');
+                    if (nameInput.value.trim()) {
+                        this.playerName = nameInput.value.trim();
+                        this.startGame();
+                    } else {
+                        nameInput.classList.add('shake');
+                        setTimeout(() => nameInput.classList.remove('shake'), 500);
+                    }
+                });
+                
+                // Enter key on name input
+                document.getElementById('playerName').addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        document.getElementById('startButton').click();
+                    }
+                });
+                
+                // Submit button
+                document.getElementById('submitButton').addEventListener('click', () => {
+                    this.checkSolution();
+                });
+                
+                // Reset path button
+                document.getElementById('resetPathButton').addEventListener('click', () => {
+                    this.resetPath();
+                });
+                
+                // Play again button
+                document.getElementById('playAgainButton').addEventListener('click', () => {
+                    this.resetGame();
+                });
+                
+                // Grid interaction
+                this.bindGridEvents();
+            }
+            
+            bindGridEvents() {
+                const cells = document.querySelectorAll('.grid-cell');
+                
+                cells.forEach(cell => {
+                    // Click events for both mouse and touch
+                    cell.addEventListener('click', (e) => this.handleCellClick(e));
+                    cell.addEventListener('touchend', (e) => {
+                        e.preventDefault();
+                        this.handleCellClick(e);
+                    });
+                });
+                
+                // Prevent context menu
+                document.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+            
+            handleCellClick(e) {
+                const cell = e.target;
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                
+                // If no path started yet, must start from home
+                if (this.path.length === 0) {
+                    if (row === this.startPos.row && col === this.startPos.col) {
+                        this.addToPath(row, col);
+                        this.currentCell = {row, col};
+                    } else {
+                        // Show error - must start from home
+                        cell.classList.add('shake');
+                        setTimeout(() => cell.classList.remove('shake'), 500);
+                    }
+                    return;
+                }
+                
+                // Check if this is a valid next move
+                if (this.isAdjacent(this.currentCell, {row, col}) && this.isValidMove(row, col)) {
+                    this.addToPath(row, col);
+                    this.currentCell = {row, col};
+                } else {
+                    // Show error - invalid move
+                    cell.classList.add('shake');
+                    setTimeout(() => cell.classList.remove('shake'), 500);
+                }
+            }
+            
+            isAdjacent(cell1, cell2) {
+                const rowDiff = Math.abs(cell1.row - cell2.row);
+                const colDiff = Math.abs(cell1.col - cell2.col);
+                return (rowDiff === 1 && colDiff === 0) || (rowDiff === 0 && colDiff === 1);
+            }
+            
+            isValidMove(row, col) {
+                // Can't go to obstacles
+                if (this.grid[row][col] === 'obstacle') return false;
+                
+                // Can't revisit cells (except returning to start at the end)
+                const alreadyVisited = this.path.some(p => p.row === row && p.col === col);
+                if (alreadyVisited && !(row === this.startPos.row && col === this.startPos.col)) {
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            addToPath(row, col) {
+                this.path.push({row, col});
+                const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"]`);
+                
+                if (!(row === this.startPos.row && col === this.startPos.col)) {
+                    cell.classList.add('path-drawn');
+                    cell.classList.add('grass-wave');
+                    cell.classList.add('vine-growing');
+                    
+                    // Add footprint with animation
+                    const footprint = document.createElement('div');
+                    footprint.className = 'footprint';
+                    footprint.innerHTML = '🌿';
+                    cell.appendChild(footprint);
+                    
+                    // Remove grass wave effect after animation
+                    setTimeout(() => {
+                        cell.classList.remove('grass-wave');
+                    }, 1000);
+                }
+            }
+            
+            clearPath() {
+                document.querySelectorAll('.grid-cell').forEach(cell => {
+                    cell.classList.remove('path-drawn', 'vine-growing', 'grass-wave', 'blooming');
+                    const footprint = cell.querySelector('.footprint');
+                    if (footprint) footprint.remove();
+                    const flowerBurst = cell.querySelector('.flower-burst');
+                    if (flowerBurst) flowerBurst.remove();
+                });
+            }
+            
+            resetPath() {
+                this.path = [];
+                this.currentCell = null;
+                this.clearPath();
+            }
+            
+            checkSolution() {
+                const submitBtn = document.getElementById('submitButton');
+                
+                // Debug: Log current path
+                console.log('Current path:', this.path);
+                console.log('Path length:', this.path.length);
+                
+                // Check if we have a path
+                if (this.path.length < 2) {
+                    console.log('Path too short');
+                    submitBtn.classList.add('pulse-red');
+                    setTimeout(() => submitBtn.classList.remove('pulse-red'), 500);
+                    return;
+                }
+                
+                // Check if path forms a loop back to start
+                const lastCell = this.path[this.path.length - 1];
+                const returnsToStart = lastCell && 
+                    lastCell.row === this.startPos.row && 
+                    lastCell.col === this.startPos.col;
+                
+                console.log('Returns to start:', returnsToStart);
+                console.log('Last cell:', lastCell);
+                console.log('Start position:', this.startPos);
+                
+                // Count all visitable cells (excluding obstacles)
+                let totalVisitableCells = 0;
+                for (let row = 0; row < this.gridSize; row++) {
+                    for (let col = 0; col < this.gridSize; col++) {
+                        if (this.grid[row][col] !== 'obstacle') {
+                            totalVisitableCells++;
+                        }
+                    }
+                }
+                
+                console.log('Total visitable cells:', totalVisitableCells);
+                
+                // Create set of unique visited positions (excluding the final return to start)
+                const visitedPositions = new Set();
+                for (let i = 0; i < this.path.length - (returnsToStart ? 1 : 0); i++) {
+                    const pos = this.path[i];
+                    visitedPositions.add(`${pos.row},${pos.col}`);
+                }
+                
+                console.log('Unique visited positions:', visitedPositions.size);
+                console.log('Visited positions:', Array.from(visitedPositions));
+                
+                // Check if path is continuous
+                const isValidPath = this.isPathContinuous();
+                console.log('Is valid continuous path:', isValidPath);
+                
+                // Check if we visited all cells exactly once and returned to start
+                const visitedAllCells = visitedPositions.size === totalVisitableCells;
+                
+                console.log('Visited all cells:', visitedAllCells);
+                console.log('Returns to start:', returnsToStart);
+                console.log('Valid path:', isValidPath);
+                
+                if (returnsToStart && visitedAllCells && isValidPath) {
+                    console.log('VICTORY!');
+                    this.triggerVictoryEffects();
+                    setTimeout(() => this.showVictory(), 1500);
+                } else {
+                    console.log('Solution not correct');
+                    // Show error feedback
+                    submitBtn.classList.add('pulse-red');
+                    setTimeout(() => submitBtn.classList.remove('pulse-red'), 500);
+                }
+            }
+            
+            triggerVictoryEffects() {
+                // Make all path cells bloom with flowers
+                const pathCells = document.querySelectorAll('.path-drawn');
+                const flowers = ['🌸', '🌺', '🌻', '🌼', '🌷'];
+                
+                pathCells.forEach((cell, index) => {
+                    setTimeout(() => {
+                        cell.classList.add('blooming');
+                        
+                        // Add flower burst effect
+                        const flowerBurst = document.createElement('div');
+                        flowerBurst.className = 'flower-burst';
+                        flowerBurst.innerHTML = flowers[Math.floor(Math.random() * flowers.length)];
+                        cell.appendChild(flowerBurst);
+                    }, index * 100);
+                });
+            }
+            
+            isPathContinuous() {
+                for (let i = 1; i < this.path.length; i++) {
+                    if (!this.isAdjacent(this.path[i-1], this.path[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            
+            startGame() {
+                // Create vine transition effect
+                const vineTransition = document.createElement('div');
+                vineTransition.className = 'vine-transition';
+                
+                const vineCurtain = document.createElement('div');
+                vineCurtain.className = 'vine-curtain';
+                
+                vineTransition.appendChild(vineCurtain);
+                document.body.appendChild(vineTransition);
+                
+                // Hide start screen and show game screen
+                setTimeout(() => {
+                    document.getElementById('startScreen').classList.add('hidden');
+                    document.getElementById('gameScreen').classList.remove('hidden');
+                }, 600);
+                
+                // Remove vine transition after animation
+                setTimeout(() => {
+                    if (vineTransition.parentNode) {
+                        vineTransition.parentNode.removeChild(vineTransition);
+                    }
+                }, 1200);
+                
+                this.startTime = Date.now();
+                this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+            }
+            
+            updateTimer() {
+                const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                const timeString = `${minutes}:${seconds}`;
+                
+                document.getElementById('timerDesktop').textContent = timeString;
+                document.getElementById('timerMobile').textContent = timeString;
+            }
+            
+            showVictory() {
+                clearInterval(this.timerInterval);
+                
+                const elapsed = Math.floor((Date.now() - this.startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                const finalTime = `${minutes}:${seconds}`;
+                
+                document.getElementById('winnerName').textContent = this.playerName;
+                document.getElementById('finalTime').textContent = finalTime;
+                document.getElementById('victoryModal').classList.remove('hidden');
+                
+                // Create falling petals effect
+                this.createFallingPetals();
+                
+                // Add butterfly to victory modal
+                setTimeout(() => {
+                    this.addVictoryButterfly();
+                }, 1000);
+            }
+            
+            addVictoryButterfly() {
+                const modal = document.querySelector('.victory-modal');
+                const butterfly = document.createElement('div');
+                butterfly.innerHTML = '🦋';
+                butterfly.style.position = 'absolute';
+                butterfly.style.top = '10px';
+                butterfly.style.right = '10px';
+                butterfly.style.fontSize = '24px';
+                butterfly.style.animation = 'leafFloat 3s ease-in-out infinite';
+                butterfly.style.zIndex = '20';
+                
+                modal.appendChild(butterfly);
+            }
+            
+            createFallingPetals() {
+                const petalsContainer = document.getElementById('petalsContainer');
+                const petals = ['🌸', '🌺', '🌻', '🌼', '🌷'];
+                
+                for (let i = 0; i < 15; i++) {
+                    setTimeout(() => {
+                        const petal = document.createElement('div');
+                        petal.className = 'petal';
+                        petal.innerHTML = petals[Math.floor(Math.random() * petals.length)];
+                        petal.style.left = Math.random() * 100 + '%';
+                        petal.style.animationDelay = Math.random() * 2 + 's';
+                        petal.style.animationDuration = (Math.random() * 2 + 3) + 's';
+                        
+                        petalsContainer.appendChild(petal);
+                        
+                        // Remove petal after animation
+                        setTimeout(() => {
+                            if (petal.parentNode) {
+                                petal.parentNode.removeChild(petal);
+                            }
+                        }, 5000);
+                    }, i * 200);
+                }
+            }
+            
+            resetGame() {
+                document.getElementById('victoryModal').classList.add('hidden');
+                
+                // Reset game state but stay on game screen
+                this.path = [];
+                this.clearPath();
+                this.initializeGrid();
+                
+                // Reset and restart timer
+                if (this.timerInterval) {
+                    clearInterval(this.timerInterval);
+                }
+                
+                document.getElementById('timerDesktop').textContent = '00:00';
+                document.getElementById('timerMobile').textContent = '00:00';
+                
+                // Restart timer
+                this.startTime = Date.now();
+                this.timerInterval = setInterval(() => this.updateTimer(), 1000);
+            }
+        }
+        
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new GardenerGame();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9905e51ae5d84e24',t:'MTc2MDc2ODA2MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
